@@ -58,6 +58,42 @@ void Decrypt(uchar *in, uchar *out, int debug)
         print("Decryption:", in, out);
 }
 
+void Encrypt32(uchar *in, uchar *out, int debug)
+{
+    static int firstRun = 1;
+    static AES_KEY encryptKey;
+
+    if (firstRun == 1)
+    {
+        AES_set_encrypt_key(ckey, 256, &encryptKey);
+        firstRun = 0;
+    }   
+
+    AES_ecb_encrypt(in, out, &encryptKey, AES_ENCRYPT);
+    AES_ecb_encrypt(&in[AES_BLOCK_SIZE], &out[AES_BLOCK_SIZE], &encryptKey, AES_ENCRYPT);
+
+    if (debug)
+        print("Encryption:", in, out);
+}
+
+void Decrypt32(uchar *in, uchar *out, int debug)
+{
+    static int firstRun = 1;
+    static AES_KEY decryptKey;
+
+    if (firstRun == 1)
+    {
+        AES_set_decrypt_key(ckey, 256, &decryptKey);
+        firstRun = 0;
+    }   
+
+    AES_ecb_encrypt(in, out, &decryptKey, AES_DECRYPT);
+    AES_ecb_encrypt(&in[AES_BLOCK_SIZE], &out[AES_BLOCK_SIZE], &decryptKey, AES_DECRYPT);
+
+    if (debug)
+        print("Decryption:", in, out);
+}
+
 // Test client
 int main(int argc, char **argv) 
 {
@@ -79,16 +115,16 @@ int main(int argc, char **argv)
 	}
 
     // Sample input
-    uchar in[AES_BLOCK_SIZE] = "helloworld1234\n";
-    uchar out[AES_BLOCK_SIZE];
+    uchar in[2 * AES_BLOCK_SIZE] = "helloworld1234\nhelloworld1234\n";
+    uchar out[2 * AES_BLOCK_SIZE];
 
     printf("Running %d trials...\n", BLOCKS);
 
     // Run trials
     for (i = 0; i < BLOCKS; i++)
     {
-        Encrypt(in, out, PRINT);
-        Decrypt(out, in, PRINT);
+        Encrypt32(in, out, PRINT);
+        Decrypt32(out, in, PRINT);
     }
     
     printf("Completed encryption and decryption of %d blocks.\n", BLOCKS);
